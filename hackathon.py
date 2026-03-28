@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 
 # Page Configuration
@@ -63,5 +64,36 @@ with st.container(border=True):
         else:
             st.error("Please enter a task name to start.")
 
+st.divider()
+st.header("🟢 Active Session")
+
+# Find active sessions
+active_sessions = [s for s in st.session_state.sessions if s["status"] == "Active"]
+
+if active_sessions:
+    current = active_sessions[-1]
+
+    st.success(f"Currently Working On: {current['task']}")
+
+    col1, col2 = st.columns(2)
+    col1.metric("Started At", current["start_time"])
+    col2.metric("Priority", current["priority"])
+
+    st.write("📝 **Notes:**", current["notes"])
+    st.write("➡️ **Next Step:**", current["next_step"])
+
+else:
+    st.info("No active session")
+
+# -------------------------
+
+st.divider()
+st.header("📊 All Sessions")
+
+if st.session_state.sessions:
+    df = pd.DataFrame(st.session_state.sessions)
+    st.dataframe(df, use_container_width=True)
+else:
+    st.write("No sessions created yet.")
 # --- FOOTER ---
 st.caption("Astitva Hackathon 2025 | Solving the Context-Switch Tax")
