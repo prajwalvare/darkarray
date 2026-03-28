@@ -95,5 +95,57 @@ if st.session_state.sessions:
     st.dataframe(df, use_container_width=True)
 else:
     st.write("No sessions created yet.")
+
+# =========================
+# STEP 3: PAUSE & RESUME
+# =========================
+
+from datetime import datetime
+
+st.divider()
+st.header("⏸️ Manage Sessions")
+
+# --- Find active session ---
+active_sessions = [s for s in st.session_state.sessions if s["status"] == "Active"]
+
+if active_sessions:
+    current = active_sessions[-1]
+
+    st.subheader(f"⚡ Active: {current['task']}")
+
+    # Input to update before pausing
+    next_step = st.text_input("Next Step", value=current.get("next_step", ""))
+    updated_notes = st.text_area("Update Notes", value=current["notes"])
+
+    if st.button("⏸️ Pause Session"):
+        current["status"] = "Paused"
+        current["pause_time"] = datetime.now().strftime("%H:%M")
+        current["next_step"] = next_step
+        current["notes"] = updated_notes
+
+        st.success("Session paused with context saved!")
+
+# --- Show paused sessions ---
+paused_sessions = [s for s in st.session_state.sessions if s["status"] == "Paused"]
+
+if paused_sessions:
+    st.divider()
+    st.header("🔁 Resume Sessions")
+
+    for i, session in enumerate(paused_sessions):
+        with st.container(border=True):
+            st.write(f"**Task:** {session['task']}")
+            st.write(f"**Paused At:** {session.get('pause_time', 'N/A')}")
+            st.write(f"**Next Step:** {session.get('next_step', 'None')}")
+
+            if st.button(f"▶️ Resume {session['task']}", key=i):
+                # deactivate any active session
+                for s in st.session_state.sessions:
+                    if s["status"] == "Active":
+                        s["status"] = "Paused"
+
+                session["status"] = "Active"
+
+                st.success("Resumed with saved context!")
 # --- FOOTER ---
 st.caption("Astitva Hackathon 2025 | Solving the Context-Switch Tax")
